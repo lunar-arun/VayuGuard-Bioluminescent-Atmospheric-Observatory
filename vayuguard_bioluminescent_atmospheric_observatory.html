@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VayuGuard — Bioluminescent Atmospheric Observatory</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Futuristic Observatory Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: {
+              950: '#04070D',
+              900: '#06090F',
+              800: '#0C121E',
+              700: '#131C2E',
+            },
+            aurora: {
+              emerald: '#10B981',
+              cyan: '#06B6D4',
+              teal: '#14B8A6',
+            },
+            hazard: {
+              amber: '#F59E0B',
+              crimson: '#F43F5E',
+              violet: '#A855F7',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-obsidian: #06090F;
+      --aurora-emerald: #10B981;
+      --aurora-cyan: #06B6D4;
+      --hazard-amber: #F59E0B;
+      --hazard-crimson: #F43F5E;
+    }
+
+    body {
+      background-color: var(--bg-obsidian);
+      color: #F1F5F9;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Full-bleed Atmospheric Particle Canvas */
+    #atmos-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Ambient Aurora Mesh Overlays */
+    .aurora-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.11) 0%, transparent 42%),
+        radial-gradient(circle at 85% 20%, rgba(6, 182, 212, 0.10) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(244, 63, 94, 0.08) 0%, transparent 48%);
+    }
+
+    /* Frosted Obsidian Glass Cards */
+    .glass-panel {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.68) 0%, rgba(9, 13, 22, 0.78) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+    }
+
+    .glass-panel-glow {
+      background: linear-gradient(145deg, rgba(16, 26, 44, 0.74) 0%, rgba(8, 13, 23, 0.84) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.18), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-pill {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Custom Scrollbars */
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.3);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(16, 185, 129, 0.35);
+      border-radius: 9999px;
+    }
+
+    /* Neural Orb & Biosphere Animations */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spinReverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+    @keyframes pulseAura {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+    @keyframes radarSweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes floatFlow {
+      0% { stroke-dashoffset: 48; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes msgSlideIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .animate-spin-slow { animation: spinSlow 24s linear infinite; }
+    .animate-spin-reverse { animation: spinReverse 18s linear infinite; }
+    .animate-pulse-aura { animation: pulseAura 4s ease-in-out infinite; }
+    .animate-radar { animation: radarSweep 6s linear infinite; transform-origin: 100px 100px; }
+    .airflow-stream {
+      stroke-dasharray: 6 6;
+      animation: floatFlow 1.4s linear infinite;
+    }
+    .animate-msg {
+      animation: msgSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Range Slider Styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(30, 41, 59, 0.9);
+      height: 6px;
+      border-radius: 999px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #10B981;
+      cursor: pointer;
+      box-shadow: 0 0 12px #10B981;
+      border: 2px solid #fff;
+    }
+  </style>
+</head>
+<body class="min-h-screen relative selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Full-Screen Interactive Smog & Oxygen Flow Canvas -->
+  <canvas id="atmos-canvas"></canvas>
+  <div class="aurora-backdrop"></div>
+
+  <!-- Non-blocking Toast Notification HUD -->
+  <div id="hud-toast" class="fixed bottom-6 right-6 z-50 hidden transform translate-y-4 opacity-0 transition-all duration-300">
+    <div class="glass-panel-glow px-4 py-3 rounded-2xl flex items-center gap-3 max-w-sm">
+      <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shrink-0">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-emerald-400">Biosphere Telemetry</p>
+        <p id="hud-toast-text" class="text-xs font-medium text-slate-100 mt-0.5">System calibrated.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Layer -->
+  <div class="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+
+    <!-- FLOATING PILL COMMAND DECK (TOP BAR) -->
+    <header class="glass-panel rounded-3xl px-4 sm:px-6 py-3.5 sticky top-3 z-40">
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+        
+        <!-- Brand & Live Observatory Status -->
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)]">
+              <i data-lucide="orbit" class="w-6 h-6 text-emerald-300 animate-spin-slow"></i>
+              <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-obsidian-900"></span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5">
+                <h1 class="font-display font-bold text-xl sm:text-2xl tracking-tight bg-gradient-to-r from-white via-emerald-100 to-cyan-200 bg-clip-text text-transparent">
+                  VayuGuard
+                </h1>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase tracking-widest bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                  Bioluminescent OS v3.1
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 hidden sm:block">Atmospheric Smog Defense &amp; Low-Emission Family Intelligence</p>
+            </div>
+          </div>
+
+          <!-- Live Cursor Purifier Indicator -->
+          <div class="hidden md:flex xl:hidden items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/25 text-[11px] font-mono text-cyan-300">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            Cursor Ionizer Active
+          </div>
+        </div>
+
+        <!-- City Selector + Custom AQI Slider + Household Profile Pills -->
+        <div class="flex flex-wrap items-center gap-3">
+          
+          <!-- Location Selector Pill -->
+          <div class="glass-pill rounded-2xl px-3.5 py-2 flex items-center gap-2.5 flex-1 sm:flex-initial">
+            <i data-lucide="radar" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+            <div class="flex flex-col">
+              <span class="text-[9px] font-mono uppercase tracking-widest text-slate-400">Sector &amp; Smog Load</span>
+              <select id="city-select" onchange="onCitySelectChange()" class="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer pr-2">
+                <option value="delhi" class="bg-obsidian-900 text-white">New Delhi — AQI 342 (Severe Inversion)</option>
+                <option value="chennai" class="bg-obsidian-900 text-white">Chennai — AQI 148 (Coastal Haze)</option>
+                <option value="lahore" class="bg-obsidian-900 text-white">Lahore — AQI 389 (Hazardous Smog)</option>
+                <option value="beijing" class="bg-obsidian-900 text-white">Beijing — AQI 195 (Unhealthy Winter)</option>
+                <option value="custom" class="bg-obsidian-900 text-emerald-300">Custom City / Live AQI Simulator</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Custom City & Interactive AQI Slider (Reveals when Custom selected) -->
+          <div id="custom-sim-controls" class="hidden glass-pill rounded-2xl px-3.5 py-2 items-center gap-3 border-emerald-400/40">
+            <input id="custom-city-name" type="text" value="My Ward" placeholder="City Name" class="bg-obsidian-800/80 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-medium text-white w-24 focus:outline-none focus:border-emerald-400" />
+            <div class="flex flex-col w-28 sm:w-36">
+              <div class="flex justify-between text-[10px] font-mono">
+                <span class="text-slate-400">SIM AQI</span>
+                <span id="custom-aqi-val" class="text-amber-300 font-bold">280</span>
+              </div>
+              <input id="custom-aqi-slider" type="range" min="35" max="480" value="280" oninput="onCustomSliderInput()" class="mt-1" />
+            </div>
+          </div>
+
+          <!-- Household Profile Selector Pill -->
+          <div class="glass-pill rounded-2xl px-3.5 py-2 flex items-center gap-2.5 flex-1 sm:flex-initial">
+            <i data-lucide="users" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+            <div class="flex flex-col">
+              <span class="text-[9px] font-mono uppercase tracking-widest text-slate-400">Biosphere Profile</span>
+              <select id="profile-select" onchange="onProfileChange()" class="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer pr-2">
+                <option value="family" class="bg-obsidian-900 text-white">Family w/ Kids &amp; Seniors</option>
+                <option value="commuter" class="bg-obsidian-900 text-white">Metro / Daily Commuter</option>
+                <option value="apartment" class="bg-obsidian-900 text-white">High-Rise Apartment</option>
+                <option value="leader" class="bg-obsidian-900 text-white">Community Organizer</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cursor Ionizer Hint Pill -->
+          <div class="hidden xl:flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 text-[11px] font-mono text-cyan-300">
+            <i data-lucide="wind" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Move cursor to ionize smog</span>
+          </div>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO SECTION: BREATHABLE BIOSPHERE SANCTUARY VISUALIZER + LIVE TELEMETRY -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      
+      <!-- Left 7 Cols: Interactive 'Breathable Biosphere' Dome & 24-Hr Ventilation Arc -->
+      <div class="lg:col-span-7 glass-panel-glow rounded-3xl p-6 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+        
+        <!-- Top Status Strip -->
+        <div class="flex flex-wrap items-center justify-between gap-3 z-10">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="hero-hazard-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                SEVERE INVERSION ALERT
+              </span>
+              <span id="hero-city-label" class="text-xs font-mono text-slate-300">NEW DELHI • 28.61°N</span>
+            </div>
+            <h2 class="font-display font-bold text-2xl sm:text-3xl text-white mt-2 tracking-tight">
+              Breathable Biosphere Sanctuary
+            </h2>
+          </div>
+
+          <!-- Cigarette Equivalent Saved Visceral Badge -->
+          <div class="glass-pill rounded-2xl px-4 py-2.5 border-emerald-400/30 text-right">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-emerald-300">Lung Burden Avoided</p>
+            <p class="font-display font-bold text-xl sm:text-2xl text-white mt-0.5">
+              <span id="cigs-saved" class="text-emerald-400">5.4</span> <span class="text-xs font-normal text-slate-300">cigs / day saved</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Centerpiece SVG Interactive Dome + 24-Hour Safe Ventilation Radial Clock -->
+        <div class="my-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-center z-10">
+          
+          <!-- Animated Concentric Biosphere SVG (7 cols) -->
+          <div class="md:col-span-7 flex flex-col items-center justify-center relative">
+            <svg viewBox="0 0 340 340" class="w-full max-w-[320px] h-auto overflow-visible">
+              <defs>
+                <radialGradient id="domeCoreGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#10B981" stop-opacity="0.38" />
+                  <stop offset="65%" stop-color="#06B6D4" stop-opacity="0.14" />
+                  <stop offset="100%" stop-color="#06090F" stop-opacity="0" />
+                </radialGradient>
+                <linearGradient id="shieldStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10B981" />
+                  <stop offset="50%" stop-color="#06B6D4" />
+                  <stop offset="100%" stop-color="#34D399" />
+                </linearGradient>
+                <linearGradient id="hazardRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#F43F5E" />
+                  <stop offset="100%" stop-color="#F59E0B" />
+                </linearGradient>
+              </defs>
+
+              <!-- Ambient Core Aura -->
+              <circle cx="170" cy="170" r="135" fill="url(#domeCoreGlow)" class="animate-pulse-aura" />
+
+              <!-- Outer 24-Hour Ventilation Clock Track -->
+              <circle cx="170" cy="170" r="152" fill="none" stroke="rgba(148, 163, 184, 0.15)" stroke-width="8" />
+              <!-- Peak Smog Inversion Arc (Night/Morning Hazard Hours) -->
+              <circle cx="170" cy="170" r="152" fill="none" stroke="url(#hazardRing)" stroke-width="8" stroke-dasharray="420 955" stroke-dashoffset="-110" stroke-linecap="round" opacity="0.85" />
+              <!-- Safe Midday Ventilation Window Arc (Highlighted Emerald) -->
+              <circle id="safe-vent-arc" cx="170" cy="170" r="152" fill="none" stroke="#10B981" stroke-width="10" stroke-dasharray="145 955" stroke-dashoffset="-35" stroke-linecap="round" />
+
+              <!-- Clock Cardinal Labels -->
+              <text x="170" y="10" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="JetBrains Mono">12 PM (SAFE WINDOW)</text>
+              <text x="170" y="336" text-anchor="middle" fill="#FDA4AF" font-size="9" font-family="JetBrains Mono">12 AM (INVERSION PEAK)</text>
+              <text x="332" y="173" text-anchor="end" fill="#94A3B8" font-size="9" font-family="JetBrains Mono">6 PM</text>
+              <text x="8" y="173" text-anchor="start" fill="#94A3B8" font-size="9" font-family="JetBrains Mono">6 AM</text>
+
+              <!-- Rotating Orbital Deflection Shield -->
+              <g class="animate-spin-slow" style="transform-origin: 170px 170px;">
+                <circle cx="170" cy="170" r="122" fill="none" stroke="url(#shieldStroke)" stroke-width="2" stroke-dasharray="18 10 4 10" />
+              </g>
+
+              <!-- Counter-Rotating Inner Bio-Membrane -->
+              <g class="animate-spin-reverse" style="transform-origin: 170px 170px;">
+                <circle cx="170" cy="170" r="102" fill="none" stroke="#06B6D4" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.7" />
+              </g>
+
+              <!-- Deflected Outdoor Smog Motes Bouncing Off Shield -->
+              <g id="dome-deflection-particles">
+                <circle cx="48" cy="95" r="3.5" fill="#F43F5E" opacity="0.85">
+                  <animate attributeName="cx" values="38;64;38" dur="3.4s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.9;0.2;0.9" dur="3.4s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="292" cy="110" r="4" fill="#F59E0B" opacity="0.85">
+                  <animate attributeName="cx" values="302;274;302" dur="2.9s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="62" cy="248" r="3" fill="#F43F5E" opacity="0.8">
+                  <animate attributeName="cy" values="258;232;258" dur="3.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="282" cy="240" r="3.5" fill="#F59E0B" opacity="0.8">
+                  <animate attributeName="cy" values="250;224;250" dur="3.1s" repeatCount="indefinite" />
+                </circle>
+              </g>
+
+              <!-- Inner Sanctuary Dome Core -->
+              <circle cx="170" cy="170" r="88" fill="rgba(6, 14, 24, 0.85)" stroke="rgba(16, 185, 129, 0.5)" stroke-width="2" />
+
+              <!-- Central HUD Readout -->
+              <text x="170" y="136" text-anchor="middle" fill="#6EE7B7" font-size="10" font-family="JetBrains Mono" letter-spacing="2">INDOOR PURITY</text>
+              <text id="svg-purity-pct" x="170" y="178" text-anchor="middle" fill="#FFFFFF" font-size="42" font-weight="700" font-family="Space Grotesk">91%</text>
+              <text id="svg-indoor-aqi" x="170" y="202" text-anchor="middle" fill="#38BDF8" font-size="12" font-family="JetBrains Mono">INDOOR AQI: 32</text>
+              <text id="svg-outdoor-vs" x="170" y="220" text-anchor="middle" fill="#FDA4AF" font-size="10" font-family="JetBrains Mono">VS OUTDOOR 342</text>
+            </svg>
+          </div>
+
+          <!-- Right Side Breakdown Telemetry (5 cols) -->
+          <div class="md:col-span-5 space-y-3.5">
+            <!-- Outdoor Toxic Load Card -->
+            <div class="p-4 rounded-2xl bg-rose-950/30 border border-rose-500/25">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-rose-300">Outdoor Smog Load</span>
+                <i data-lucide="cloud-fog" class="w-4 h-4 text-rose-400"></i>
+              </div>
+              <div class="mt-1.5 flex items-baseline gap-2">
+                <span id="outdoor-aqi-display" class="font-display font-bold text-3xl text-white">342</span>
+                <span class="text-xs font-mono text-rose-300">US AQI</span>
+              </div>
+              <p id="outdoor-pm-detail" class="text-xs font-mono text-slate-300 mt-1">PM2.5: 198 µg/m³ • 13.2× WHO</p>
+            </div>
+
+            <!-- Safe Ventilation Window Card -->
+            <div class="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-400/25">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-emerald-300">Safe Ventilation Arc</span>
+                <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <p id="safe-window-time" class="font-display font-bold text-lg text-white mt-1">1:30 PM – 3:30 PM</p>
+              <p id="safe-window-note" class="text-xs text-slate-300 mt-1 leading-relaxed">
+                Solar thermal lift breaks ground inversion. Cross-ventilate 15 mins to flush indoor CO₂.
+              </p>
+            </div>
+
+            <!-- Shield Deflection Telemetry -->
+            <div class="p-3.5 rounded-2xl bg-obsidian-800/70 border border-slate-700/60 flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-mono uppercase text-slate-400">Particulate Deflection</p>
+                <p id="deflection-rate" class="text-sm font-bold text-cyan-300 mt-0.5">166 µg/m³ Blocked</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 font-mono text-xs font-semibold">
+                ACTIVE
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Atmospheric Inversion Insight Bar -->
+        <div class="pt-3.5 border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-2 text-xs z-10">
+          <div class="flex items-center gap-2 text-slate-300">
+            <i data-lucide="thermometer-snowflake" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+            <span id="inversion-physics-note">Boundary-layer thermal cap at 180m trapping vehicular NOx &amp; biomass smoke.</span>
+          </div>
+          <span class="font-mono text-[11px] text-emerald-400">Particle Field: Synchronized</span>
+        </div>
+      </div>
+
+      <!-- Right 5 Cols: Direct Impact Simulator & Daily Low-Emission Routine Matrix -->
+      <div class="lg:col-span-5 glass-panel rounded-3xl p-6 flex flex-col justify-between space-y-5">
+        <div>
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-400">Kinetic Impact Engine</span>
+              <h3 class="font-display font-bold text-xl text-white mt-0.5">Daily Low-Emission Matrix</h3>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 font-mono text-xs font-bold text-emerald-300">
+              <span id="habits-active-count">3</span>/<span id="habits-total-count">4</span> ACTIVE
+            </span>
+          </div>
+
+          <!-- 3 Liquid-Fill / Glowing Impact Gauges -->
+          <div class="grid grid-cols-3 gap-3 mt-4">
+            <div class="p-3.5 rounded-2xl bg-obsidian-800/80 border border-emerald-500/25 relative overflow-hidden">
+              <div id="gauge-bg-pm" class="absolute bottom-0 left-0 right-0 bg-emerald-500/15 transition-all duration-500" style="height: 75%"></div>
+              <div class="relative z-10">
+                <p class="text-[10px] font-mono uppercase text-slate-400">PM2.5 Avoided</p>
+                <p class="font-display font-bold text-2xl text-emerald-300 mt-1">
+                  <span id="impact-pm-val">114</span><span class="text-[11px] font-mono text-slate-300"> µg/m³</span>
+                </p>
+                <p class="text-[10px] text-emerald-200/80 mt-0.5">Personal dose cut</p>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-obsidian-800/80 border border-amber-500/25 relative overflow-hidden">
+              <div id="gauge-bg-co2" class="absolute bottom-0 left-0 right-0 bg-amber-500/15 transition-all duration-500" style="height: 68%"></div>
+              <div class="relative z-10">
+                <p class="text-[10px] font-mono uppercase text-slate-400">Soot &amp; CO₂ Cut</p>
+                <p class="font-display font-bold text-2xl text-amber-300 mt-1">
+                  <span id="impact-co2-val">3.8</span><span class="text-[11px] font-mono text-slate-300"> kg</span>
+                </p>
+                <p class="text-[10px] text-amber-200/80 mt-0.5">Neighborhood drop</p>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-obsidian-800/80 border border-cyan-500/25 relative overflow-hidden">
+              <div id="gauge-bg-hrs" class="absolute bottom-0 left-0 right-0 bg-cyan-500/15 transition-all duration-500" style="height: 80%"></div>
+              <div class="relative z-10">
+                <p class="text-[10px] font-mono uppercase text-slate-400">Clean Breath</p>
+                <p class="font-display font-bold text-2xl text-cyan-300 mt-1">
+                  +<span id="impact-hrs-val">7.2</span><span class="text-[11px] font-mono text-slate-300"> hrs</span>
+                </p>
+                <p class="text-[10px] text-cyan-200/80 mt-0.5">WHO-safe equiv.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Habit Switches -->
+          <div id="habit-matrix-list" class="mt-4 space-y-2.5 max-h-[310px] overflow-y-auto custom-scroll pr-1">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Plain-Language Direct Cause & Effect Readout -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-cyan-950/50 border border-emerald-400/25 flex items-start gap-3">
+          <i data-lucide="sparkles" class="w-4 h-4 text-emerald-300 shrink-0 mt-0.5"></i>
+          <p id="direct-impact-narrative" class="text-xs text-slate-200 leading-relaxed">
+            Your active choices slash family particulate inhalation by <strong class="text-emerald-300">68%</strong> and eliminate <strong class="text-amber-300">3.8 kg</strong> of winter combustion emissions today.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- MIDDLE & LOWER BENTO DECK: INDOOR AIR X-RAY LAB + AETHER GENAI COPILOT + COMMUNITY RADAR -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left 5 Cols: Interactive Indoor Air Quality Hacks Lab (Visual X-Ray Room Blueprint) + Community Radar -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- INTERACTIVE X-RAY ROOM BLUEPRINT -->
+        <div class="glass-panel rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-emerald-400">Interactive Blueprint</span>
+              <h3 class="font-display font-bold text-lg text-white">Indoor Air Hacks X-Ray Lab</h3>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-mono text-slate-400 block">ROOM CADR BOOST</span>
+              <span id="room-cadr-score" class="font-mono font-bold text-sm text-emerald-300">+420 CFM</span>
+            </div>
+          </div>
+
+          <!-- Interactive Illustrated Cutaway SVG Room -->
+          <div class="relative rounded-2xl bg-obsidian-950/90 border border-slate-800 p-3 overflow-hidden">
+            <svg viewBox="0 0 420 210" class="w-full h-auto">
+              <!-- Blueprint Grid Lines -->
+              <g stroke="rgba(56, 189, 248, 0.08)" stroke-width="1">
+                <line x1="0" y1="35" x2="420" y2="35" />
+                <line x1="0" y1="70" x2="420" y2="70" />
+                <line x1="0" y1="105" x2="420" y2="105" />
+                <line x1="0" y1="140" x2="420" y2="140" />
+                <line x1="0" y1="175" x2="420" y2="175" />
+                <line x1="70" y1="0" x2="70" y2="210" />
+                <line x1="140" y1="0" x2="140" y2="210" />
+                <line x1="210" y1="0" x2="210" y2="210" />
+                <line x1="280" y1="0" x2="280" y2="210" />
+                <line x1="350" y1="0" x2="350" y2="210" />
+              </g>
+
+              <!-- Isometric / Cutaway Room Walls & Floor -->
+              <polygon points="30,30 390,30 390,175 30,175" fill="rgba(15, 23, 42, 0.65)" stroke="#334155" stroke-width="2" />
+              <line x1="30" y1="175" x2="390" y2="175" stroke="#475569" stroke-width="3" />
+
+              <!-- Left Window & Door Seal Zone (Hack 4: Exhaust & Door-Draft Seal) -->
+              <rect x="34" y="52" width="14" height="75" fill="#0F172A" stroke="#64748B" stroke-width="1.5" />
+              <g id="xray-seal-layer">
+                <rect x="32" y="50" width="18" height="79" fill="none" stroke="#10B981" stroke-width="2.5" rx="2" />
+                <text x="56" y="66" fill="#34D399" font-size="8" font-family="JetBrains Mono">SILICONE SEAL</text>
+                <text x="56" y="76" fill="#94A3B8" font-size="7" font-family="JetBrains Mono">SMOG INFILTRATION: -92%</text>
+              </g>
+
+              <!-- Centerpiece: DIY Corsi-Rosenthal MERV-13 Cube (Hack 1) -->
+              <g id="xray-cube-layer" transform="translate(165, 112)">
+                <rect x="0" y="14" width="48" height="48" rx="4" fill="rgba(16, 185, 129, 0.2)" stroke="#10B981" stroke-width="2" />
+                <circle cx="24" cy="38" r="16" fill="none" stroke="#34D399" stroke-width="1.5" stroke-dasharray="4 3" class="animate-spin-slow" style="transform-origin: 24px 38px;" />
+                <!-- Clean Upward Airflow Vectors -->
+                <path d="M12,10 C12,-10 4,-22 4,-38" fill="none" stroke="#34D399" stroke-width="2" class="airflow-stream" />
+                <path d="M24,10 C24,-12 24,-26 24,-44" fill="none" stroke="#06B6D4" stroke-width="2.5" class="airflow-stream" />
+                <path d="M36,10 C36,-10 44,-22 44,-38" fill="none" stroke="#34D399" stroke-width="2" class="airflow-stream" />
+                <text x="24" y="74" text-anchor="middle" fill="#6EE7B7" font-size="8" font-family="JetBrains Mono">MERV-13 CUBE</text>
+              </g>
+
+              <!-- Floor Surface: Wet-Mop & Microfiber Trap (Hack 2) -->
+              <g id="xray-mop-layer">
+                <line x1="65" y1="173" x2="355" y2="173" stroke="#06B6D4" stroke-width="4" stroke-linecap="round" opacity="0.85" />
+                <text x="295" y="166" text-anchor="middle" fill="#38BDF8" font-size="7.5" font-family="JetBrains Mono">WET-MOP DUST LOCK</text>
+              </g>
+
+              <!-- Right Corner: Snake/Spider Plant Bio-Wall (Hack 3) -->
+              <g id="xray-plants-layer" transform="translate(335, 115)">
+                <rect x="6" y="38" width="26" height="20" rx="3" fill="#1E293B" stroke="#10B981" stroke-width="1.5" />
+                <path d="M12,38 Q8,15 14,6 Q18,22 18,38" fill="#10B981" opacity="0.85" />
+                <path d="M20,38 Q22,10 26,4 Q28,22 24,38" fill="#34D399" opacity="0.85" />
+                <path d="M26,38 Q34,18 32,12 Q28,25 26,38" fill="#059669" opacity="0.85" />
+                <text x="19" y="70" text-anchor="middle" fill="#6EE7B7" font-size="7.5" font-family="JetBrains Mono">BIO-WALL</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- 4 Interactive Room Hack Toggle Pills -->
+          <div id="room-hacks-grid" class="grid grid-cols-2 gap-2.5 mt-3.5">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- COMMUNITY SMOG SHIELD PULSE RADAR -->
+        <div class="glass-panel rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-400">Hyper-Local Collective</span>
+              <h3 class="font-display font-bold text-lg text-white">Community Smog Shield Pulse</h3>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 font-mono text-xs font-bold text-cyan-300">
+              <span id="ward-active-count">1,482</span> NEIGHBORS
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+            <!-- Animated SVG Radar Map (5 cols) -->
+            <div class="sm:col-span-5 flex justify-center">
+              <svg viewBox="0 0 200 200" class="w-36 h-36 sm:w-40 sm:h-40">
+                <circle cx="100" cy="100" r="90" fill="rgba(6, 182, 212, 0.05)" stroke="rgba(6, 182, 212, 0.25)" stroke-width="1" />
+                <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(16, 185, 129, 0.2)" stroke-width="1" stroke-dasharray="3 3" />
+                <circle cx="100" cy="100" r="30" fill="none" stroke="rgba(16, 185, 129, 0.3)" stroke-width="1" />
+                <line x1="10" y1="100" x2="190" y2="100" stroke="rgba(148, 163, 184, 0.12)" stroke-width="1" />
+                <line x1="100" y1="10" x2="100" y2="190" stroke="rgba(148, 163, 184, 0.12)" stroke-width="1" />
+
+                <!-- Rotating Radar Beam -->
+                <path d="M100,100 L100,10 A90,90 0 0,1 178,55 Z" fill="rgba(16, 185, 129, 0.18)" class="animate-radar" />
+
+                <!-- Active Ward Pulse Nodes -->
+                <circle cx="68" cy="64" r="4" fill="#10B981">
+                  <animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="138" cy="78" r="4" fill="#06B6D4">
+                  <animate attributeName="r" values="3;6;3" dur="2.5s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="118" cy="142" r="4" fill="#10B981">
+                  <animate attributeName="r" values="3;6;3" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="100" cy="100" r="5" fill="#FFFFFF" />
+              </svg>
+            </div>
+
+            <!-- Interactive Hyper-Local Action Pacts (7 cols) -->
+            <div id="community-pacts-list" class="sm:col-span-7 space-y-2.5">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right 7 Cols: GenAI 'AETHER' Holographic Atmospheric Copilot -->
+      <div class="lg:col-span-7 glass-panel-glow rounded-3xl flex flex-col overflow-hidden min-h-[670px]">
+        
+        <!-- AETHER Copilot Header with Animated Neural Orb -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-obsidian-900/90 to-cyan-950/60 border-b border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3.5">
+            <!-- Animated Neural Wave Orb -->
+            <div class="relative w-11 h-11 rounded-2xl bg-obsidian-950 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_24px_rgba(16,185,129,0.3)]">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-300 animate-pulse-aura blur-[1px]"></div>
+              <i data-lucide="sparkles" class="w-4 h-4 text-obsidian-950 absolute"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-display font-bold text-lg text-white tracking-tight">AETHER Atmospheric Copilot</h3>
+                <span class="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-400/30 font-mono text-[10px] text-cyan-300">
+                  GEMINI-POWERED
+                </span>
+              </div>
+              <p id="aether-context-line" class="text-xs text-slate-400">Synthesizing hyper-local routine for Family w/ Kids &amp; Seniors • New Delhi</p>
+            </div>
+          </div>
+
+          <button onclick="generateInitialBriefing()" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs font-mono text-emerald-300 transition flex items-center gap-1.5 shrink-0">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            Recalibrate
+          </button>
+        </div>
+
+        <!-- Scenario Prompt Chips -->
+        <div class="px-5 py-3 bg-obsidian-950/60 border-b border-slate-800/80 flex items-center gap-2 overflow-x-auto custom-scroll">
+          <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400 shrink-0">Scenarios:</span>
+          <button onclick="triggerScenarioPrompt('school')" class="shrink-0 px-3 py-1.5 rounded-full bg-obsidian-800 hover:bg-emerald-950/70 border border-slate-700 hover:border-emerald-400/50 text-xs font-medium text-slate-200 transition">
+            🚌 Zero-Idling School Run
+          </button>
+          <button onclick="triggerScenarioPrompt('kitchen')" class="shrink-0 px-3 py-1.5 rounded-full bg-obsidian-800 hover:bg-emerald-950/70 border border-slate-700 hover:border-emerald-400/50 text-xs font-medium text-slate-200 transition">
+            🍳 Induction vs Gas Smog
+          </button>
+          <button onclick="triggerScenarioPrompt('elderly')" class="shrink-0 px-3 py-1.5 rounded-full bg-obsidian-800 hover:bg-emerald-950/70 border border-slate-700 hover:border-emerald-400/50 text-xs font-medium text-slate-200 transition">
+            🫁 Senior &amp; Asthma Shield
+          </button>
+          <button onclick="triggerScenarioPrompt('biomass')" class="shrink-0 px-3 py-1.5 rounded-full bg-obsidian-800 hover:bg-emerald-950/70 border border-slate-700 hover:border-emerald-400/50 text-xs font-medium text-slate-200 transition">
+            🍂 Stop Leaf &amp; Wood Smoke
+          </button>
+        </div>
+
+        <!-- Structured Holographic Chat Stream -->
+        <div id="aether-chat-stream" class="flex-1 p-5 overflow-y-auto custom-scroll space-y-4 bg-obsidian-950/35">
+          <!-- Messages dynamically injected here -->
+        </div>
+
+        <!-- Prompt Input Bar -->
+        <div class="p-4 bg-obsidian-900/90 border-t border-slate-800">
+          <form onsubmit="handleUserChatSubmit(event)" class="flex items-center gap-3">
+            <div class="relative flex-1">
+              <input
+                id="aether-user-input"
+                type="text"
+                placeholder="Ask AETHER for custom low-emission routes, mask fit, DIY purifier build, or meal defense..."
+                class="w-full pl-4 pr-10 py-3 bg-obsidian-950/90 border border-slate-700/90 rounded-2xl text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 transition"
+              />
+              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-400/70">
+                <i data-lucide="cpu" class="w-4 h-4"></i>
+              </span>
+            </div>
+            <button type="submit" id="aether-send-btn" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-obsidian-950 font-display font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(16,185,129,0.35)] transition flex items-center gap-2 shrink-0">
+              <span>Synthesize</span>
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Application Physics, Telemetry & GenAI Engine -->
+  <script>
+    // =========================================================================
+    // 1. CITY & HOUSEHOLD PROFILE TELEMETRY DATA
+    // =========================================================================
+    const CITIES = {
+      delhi: {
+        name: "New Delhi",
+        coords: "28.61°N • 77.20°E",
+        aqi: 342,
+        pm25: 198,
+        whoMultiple: "13.2× WHO",
+        badge: "SEVERE INVERSION ALERT",
+        badgeTone: "rose",
+        ventWindow: "1:30 PM – 3:30 PM",
+        ventNote: "Solar thermal lift breaks ground inversion. Cross-ventilate 15 mins to flush indoor CO₂.",
+        inversionNote: "Boundary-layer thermal cap at 180m trapping vehicular NOx & crop/biomass smoke."
+      },
+      chennai: {
+        name: "Chennai",
+        coords: "13.08°N • 80.27°E",
+        aqi: 148,
+        pm25: 55,
+        whoMultiple: "3.7× WHO",
+        badge: "COASTAL WINTER HAZE",
+        badgeTone: "amber",
+        ventWindow: "11:30 AM – 4:30 PM",
+        ventNote: "Afternoon sea-breeze dispersion clears stagnant morning traffic aerosols.",
+        inversionNote: "Cool northeast monsoon land-breeze trapping humid road dust & port emissions until noon."
+      },
+      lahore: {
+        name: "Lahore",
+        coords: "31.52°N • 74.35°E",
+        aqi: 389,
+        pm25: 234,
+        whoMultiple: "15.6× WHO",
+        badge: "HAZARDOUS SMOG CAP",
+        badgeTone: "rose",
+        ventWindow: "2:00 PM – 3:15 PM",
+        ventNote: "Brief afternoon thermal opening; keep HEPA filtration running continuously overnight.",
+        inversionNote: "Near-zero wind speed (<3 km/h) locking dense particulate fog below 140m altitude."
+      },
+      beijing: {
+        name: "Beijing",
+        coords: "39.90°N • 116.40°E",
+        aqi: 195,
+        pm25: 92,
+        whoMultiple: "6.1× WHO",
+        badge: "UNHEALTHY WINTER HAZE",
+        badgeTone: "amber",
+        ventWindow: "12:00 PM – 4:00 PM",
+        ventNote: "Dry midday katabatic breeze disperses surface PM2.5; seal windows before dusk.",
+        inversionNote: "Regional winter heating load combining with dry northern temperature inversion."
+      },
+      custom: {
+        name: "My Ward",
+        coords: "LOCAL TELEMETRY",
+        aqi: 280,
+        pm25: 156,
+        whoMultiple: "10.4× WHO",
+        badge: "ELEVATED SMOG ALERT",
+        badgeTone: "rose",
+        ventWindow: "1:00 PM – 3:30 PM",
+        ventNote: "Peak afternoon warmth offers the lowest ground-level particulate concentration.",
+        inversionNote: "Simulated winter boundary-layer trapping local traffic and heating particulates."
+      }
+    };
+
+    const PROFILES = {
+      family: "Family w/ Kids & Seniors",
+      commuter: "Metro / Daily Commuter",
+      apartment: "High-Rise Apartment",
+      leader: "Community Organizer"
+    };
+
+    // =========================================================================
+    // 2. INTERACTIVE HABITS & INDOOR AIR HACKS STATE
+    // =========================================================================
+    let HABITS = [
+      {
+        id: "metro",
+        title: "Shift School & Office Run to Metro / EV",
+        detail: "Replaces 14 km cold-start fossil-fuel commute",
+        pmSaved: 34,
+        co2Saved: 2.1,
+        hrsGained: 2.4,
+        impactWhy: "Cold winter engines emit 3× more ultrafine soot in the first 5 km.",
+        active: true
+      },
+      {
+        id: "induction",
+        title: "Induction Cooking + High-CFM Exhaust",
+        detail: "Eliminates indoor NO₂ & gas aerosol spikes",
+        pmSaved: 28,
+        co2Saved: 1.1,
+        hrsGained: 1.9,
+        impactWhy: "Gas stoves in sealed winter homes spike indoor NO₂ above street smog.",
+        active: true
+      },
+      {
+        id: "hepa-night",
+        title: "HEPA Nighttime Bedroom Purge",
+        detail: "8-hour deep sleep respiratory recovery",
+        pmSaved: 52,
+        co2Saved: 0.0,
+        hrsGained: 2.9,
+        impactWhy: "Lowers nocturnal PM2.5 exposure by 78% during peak 2 AM inversion.",
+        active: true
+      },
+      {
+        id: "leaf-mulch",
+        title: "Zero-Waste Leaf Mulching (No Burning)",
+        detail: "Composts dry yard litter instead of smoldering",
+        pmSaved: 18,
+        co2Saved: 1.6,
+        hrsGained: 1.2,
+        impactWhy: "One smoldering leaf pile emits as much PM2.5 as 300 idling cars.",
+        active: false
+      }
+    ];
+
+    let ROOM_HACKS = [
+      {
+        id: "cube",
+        label: "DIY MERV-13 Cube",
+        cadr: 260,
+        pmCut: 44,
+        layerId: "xray-cube-layer",
+        active: true
+      },
+      {
+        id: "mop",
+        label: "Wet-Mop Dust Trap",
+        cadr: 45,
+        pmCut: 16,
+        layerId: "xray-mop-layer",
+        active: true
+      },
+      {
+        id: "plants",
+        label: "Snake/Spider Bio-Wall",
+        cadr: 35,
+        pmCut: 10,
+        layerId: "xray-plants-layer",
+        active: true
+      },
+      {
+        id: "seal",
+        label: "Window & Door Seal",
+        cadr: 80,
+        pmCut: 26,
+        layerId: "xray-seal-layer",
+        active: true
+      }
+    ];
+
+    let COMMUNITY_PACTS = [
+      {
+        id: "school-pact",
+        title: "School-Gate No-Idling Pact",
+        meta: "-41% morning drop-off PM2.5",
+        supporters: 642,
+        joined: true
+      },
+      {
+        id: "leaf-drive",
+        title: "Ward Leaf-Composting Drive",
+        meta: "Zero open biomass fires",
+        supporters: 518,
+        joined: false
+      },
+      {
+        id: "dust-mist",
+        title: "Construction Dust Mist Alert",
+        meta: "Live ward sprinkler dispatch",
+        supporters: 322,
+        joined: false
+      }
+    ];
+
+    let currentCity = "delhi";
+    let currentProfile = "family";
+
+    // =========================================================================
+    // 3. FULL-BLEED HTML5 CANVAS PARTICLE PHYSICS ENGINE
+    //    Swirling PM2.5 smog motes transform into luminous emerald/cyan O2 streams
+    //    as purity rises, plus mouse-cursor ionizing wake!
+    // =========================================================================
+    const canvas = document.getElementById("atmos-canvas");
+    const ctx = canvas.getContext("2d");
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const mouse = { x: -9999, y: -9999, radius: 150 };
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+    window.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 0) {
+        mouse.x = e.touches[0].clientX;
+        mouse.y = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener("resize", () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    let particles = [];
+    const PARTICLE_COUNT = 125;
+
+    function getCleanRatio() {
+      // Computes 0..1 ratio based on active habits & room hacks vs outdoor AQI
+      const activeH = HABITS.filter((h) => h.active).length;
+      const activeR = ROOM_HACKS.filter((r) => r.active).length;
+      const aqiPenalty = Math.min(0.45, CITIES[currentCity].aqi / 900);
+      const shieldPower = (activeH * 0.13) + (activeR * 0.11);
+      return Math.max(0.15, Math.min(0.95, 0.45 + shieldPower - aqiPenalty));
+    }
+
+    class AtmosParticle {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(initial = false) {
+        this.x = Math.random() * width;
+        this.y = initial ? Math.random() * height : (Math.random() > 0.5 ? -10 : height + 10);
+        this.size = Math.random() * 2.6 + 1.1;
+        this.baseSpeedX = (Math.random() - 0.35) * 0.85;
+        this.baseSpeedY = (Math.random() - 0.5) * 0.55;
+        this.angle = Math.random() * Math.PI * 2;
+        this.spin = (Math.random() - 0.5) * 0.02;
+        this.ionizedTimer = 0;
+        this.isClean = Math.random() < getCleanRatio();
+      }
+
+      update(cleanRatio) {
+        this.angle += this.spin;
+        const flowX = this.baseSpeedX + Math.cos(this.angle) * 0.35;
+        const flowY = this.baseSpeedY + Math.sin(this.angle) * 0.35;
+
+        // Cursor Ionizer Wake Interaction
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < mouse.radius && dist > 0) {
+          const force = (mouse.radius - dist) / mouse.radius;
+          this.x += (dx / dist) * force * 3.2;
+          this.y += (dy / dist) * force * 3.2;
+          this.ionizedTimer = 90; // Temporarily turns smog mote into glowing cyan oxygen
+        } else {
+          this.x += flowX;
+          this.y += flowY;
+        }
+
+        if (this.ionizedTimer > 0) this.ionizedTimer--;
+
+        // Wrap around viewport smoothly
+        if (this.x < -20) this.x = width + 20;
+        if (this.x > width + 20) this.x = -20;
+        if (this.y < -20) this.y = height + 20;
+        if (this.y > height + 20) this.y = -20;
+
+        // Gradually align particle state with current cleanRatio
+        if (Math.random() < 0.01) {
+          this.isClean = Math.random() < cleanRatio;
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        if (this.ionizedTimer > 0) {
+          // Cursor-ionized luminous cyan oxygen burst
+          ctx.fillStyle = "rgba(6, 182, 212, 0.85)";
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = "#06B6D4";
+          ctx.arc(this.x, this.y, this.size * 1.35, 0, Math.PI * 2);
+        } else if (this.isClean) {
+          // Bioluminescent Aurora Emerald clean air stream
+          ctx.fillStyle = "rgba(16, 185, 129, 0.65)";
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = "#10B981";
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        } else {
+          // Heavy Amber/Crimson PM2.5 Smog Mote
+          ctx.fillStyle = "rgba(244, 63, 94, 0.52)";
+          ctx.shadowBlur = 4;
+          ctx.shadowColor = "#F59E0B";
+          ctx.arc(this.x, this.y, this.size * 1.15, 0, Math.PI * 2);
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(new AtmosParticle());
+      }
+    }
+
+    function animateAtmosphere() {
+      ctx.clearRect(0, 0, width, height);
+      const cleanRatio = getCleanRatio();
+
+      // Subtle cursor ionizer halo
+      if (mouse.x > 0 && mouse.y > 0) {
+        const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, mouse.radius);
+        grad.addColorStop(0, "rgba(6, 182, 212, 0.12)");
+        grad.addColorStop(1, "rgba(6, 182, 212, 0)");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update(cleanRatio);
+        particles[i].draw();
+      }
+      requestAnimationFrame(animateAtmosphere);
+    }
+
+    // =========================================================================
+    // 4. UI RENDERING & BIOSPHERE CALCULATIONS
+    // =========================================================================
+    function showHudToast(message) {
+      const toast = document.getElementById("hud-toast");
+      const text = document.getElementById("hud-toast-text");
+      text.textContent = message;
+      toast.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        toast.classList.remove("translate-y-4", "opacity-0");
+      });
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add("translate-y-4", "opacity-0");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+      }, 3200);
+    }
+
+    function onCitySelectChange() {
+      const val = document.getElementById("city-select").value;
+      const customBox = document.getElementById("custom-sim-controls");
+      if (val === "custom") {
+        customBox.classList.remove("hidden");
+        customBox.classList.add("flex");
+      } else {
+        customBox.classList.add("hidden");
+        customBox.classList.remove("flex");
+      }
+      currentCity = val;
+      recalculateBiosphere();
+      generateInitialBriefing();
+      showHudToast(`Atmospheric telemetry locked to ${CITIES[currentCity].name} (AQI ${CITIES[currentCity].aqi})`);
+    }
+
+    function onCustomSliderInput() {
+      const aqi = parseInt(document.getElementById("custom-aqi-slider").value, 10);
+      const nameInput = document.getElementById("custom-city-name").value.trim() || "My Ward";
+      document.getElementById("custom-aqi-val").textContent = aqi;
+
+      CITIES.custom.name = nameInput;
+      CITIES.custom.aqi = aqi;
+      CITIES.custom.pm25 = Math.round(aqi * 0.58);
+      CITIES.custom.whoMultiple = `${(aqi / 15).toFixed(1)}× WHO`;
+      CITIES.custom.badge = aqi > 250 ? "SEVERE INVERSION ALERT" : aqi > 150 ? "UNHEALTHY SMOG" : "MODERATE HAZE";
+      CITIES.custom.badgeTone = aqi > 200 ? "rose" : "amber";
+
+      recalculateBiosphere();
+    }
+
+    function onProfileChange() {
+      currentProfile = document.getElementById("profile-select").value;
+      generateInitialBriefing();
+      showHudToast(`Copilot calibrated for ${PROFILES[currentProfile]}`);
+    }
+
+    function recalculateBiosphere() {
+      const city = CITIES[currentCity];
+      const activeHabits = HABITS.filter((h) => h.active);
+      const activeHacks = ROOM_HACKS.filter((r) => r.active);
+
+      const habitPm = activeHabits.reduce((acc, h) => acc + h.pmSaved, 0);
+      const hackPm = activeHacks.reduce((acc, r) => acc + r.pmCut, 0);
+      const totalPmBlocked = habitPm + hackPm;
+
+      const totalCo2 = activeHabits.reduce((acc, h) => acc + h.co2Saved, 0);
+      const totalHours = activeHabits.reduce((acc, h) => acc + h.hrsGained, 0) + (activeHacks.length * 0.4);
+
+      // Compute Protected Indoor AQI & Purity %
+      const rawIndoorAqi = Math.round(city.aqi * 0.48);
+      const protectedIndoorAqi = Math.max(16, Math.round(rawIndoorAqi - totalPmBlocked * 0.52));
+      const purityPct = Math.min(97, Math.max(42, Math.round(((city.aqi - protectedIndoorAqi) / city.aqi) * 100)));
+      const cigsSaved = (totalPmBlocked / 22).toFixed(1);
+
+      // Update Hero Biosphere Dome & Telemetry
+      document.getElementById("hero-city-label").textContent = `${city.name.toUpperCase()} • ${city.coords}`;
+      document.getElementById("outdoor-aqi-display").textContent = city.aqi;
+      document.getElementById("outdoor-pm-detail").textContent = `PM2.5: ${city.pm25} µg/m³ • ${city.whoMultiple}`;
+      document.getElementById("safe-window-time").textContent = city.ventWindow;
+      document.getElementById("safe-window-note").textContent = city.ventNote;
+      document.getElementById("inversion-physics-note").textContent = city.inversionNote;
+
+      document.getElementById("svg-purity-pct").textContent = `${purityPct}%`;
+      document.getElementById("svg-indoor-aqi").textContent = `INDOOR AQI: ${protectedIndoorAqi}`;
+      document.getElementById("svg-outdoor-vs").textContent = `VS OUTDOOR ${city.aqi}`;
+      document.getElementById("deflection-rate").textContent = `${totalPmBlocked} µg/m³ Blocked`;
+      document.getElementById("cigs-saved").textContent = cigsSaved;
+
+      const badgeEl = document.getElementById("hero-hazard-badge");
+      if (city.badgeTone === "rose") {
+        badgeEl.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40";
+        badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>${city.badge}`;
+      } else {
+        badgeEl.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>${city.badge}`;
+      }
+
+      // Update Right Impact Matrix Gauges
+      document.getElementById("habits-active-count").textContent = activeHabits.length;
+      document.getElementById("habits-total-count").textContent = HABITS.length;
+      document.getElementById("impact-pm-val").textContent = totalPmBlocked;
+      document.getElementById("impact-co2-val").textContent = totalCo2.toFixed(1);
+      document.getElementById("impact-hrs-val").textContent = totalHours.toFixed(1);
+
+      document.getElementById("gauge-bg-pm").style.height = `${Math.min(100, (totalPmBlocked / 220) * 100)}%`;
+      document.getElementById("gauge-bg-co2").style.height = `${Math.min(100, (totalCo2 / 5) * 100)}%`;
+      document.getElementById("gauge-bg-hrs").style.height = `${Math.min(100, (totalHours / 10) * 100)}%`;
+
+      document.getElementById("direct-impact-narrative").innerHTML =
+        `Your active Biosphere defense deflects <strong class="text-emerald-300">${totalPmBlocked} µg/m³</strong> of PM2.5 (saving <strong class="text-cyan-300">${cigsSaved} cigarette-equivalents</strong>) and prevents <strong class="text-amber-300">${totalCo2.toFixed(1)} kg</strong> of local winter emissions today.`;
+
+      // Update X-Ray Room CADR
+      const totalCadr = activeHacks.reduce((acc, r) => acc + r.cadr, 0);
+      document.getElementById("room-cadr-score").textContent = `+${totalCadr} CFM`;
+
+      // Update AETHER Subtitle
+      document.getElementById("aether-context-line").textContent =
+        `Synthesizing hyper-local routine for ${PROFILES[currentProfile]} • ${city.name}`;
+    }
+
+    function renderHabitMatrix() {
+      const list = document.getElementById("habit-matrix-list");
+      list.innerHTML = "";
+
+      HABITS.forEach((h) => {
+        const row = document.createElement("div");
+        row.onclick = () => {
+          h.active = !h.active;
+          renderHabitMatrix();
+          recalculateBiosphere();
+          showHudToast(h.active ? `Activated: ${h.title}` : `Paused: ${h.title}`);
+        };
+
+        row.className = `cursor-pointer p-3.5 rounded-2xl border transition-all duration-200 select-none ${
+          h.active
+            ? "bg-emerald-950/35 border-emerald-400/40 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+            : "bg-obsidian-900/60 border-slate-800 hover:border-slate-700"
+        }`;
+
+        row.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="mt-0.5 w-5 h-5 rounded-lg flex items-center justify-center border transition ${
+              h.active
+                ? "bg-emerald-400 border-emerald-300 text-obsidian-950"
+                : "bg-obsidian-950 border-slate-600 text-transparent"
+            }">
+              <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs sm:text-sm font-semibold text-white truncate">${h.title}</p>
+                <span class="shrink-0 font-mono text-[11px] px-2 py-0.5 rounded-md ${
+                  h.active ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-800 text-slate-400"
+                }">-${h.pmSaved} µg/m³</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">${h.detail}</p>
+              <p class="text-[11px] text-cyan-300/90 mt-1.5 flex items-center gap-1.5">
+                <i data-lucide="zap" class="w-3 h-3 shrink-0"></i>
+                <span>${h.impactWhy}</span>
+              </p>
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    function renderRoomHacks() {
+      const grid = document.getElementById("room-hacks-grid");
+      grid.innerHTML = "";
+
+      ROOM_HACKS.forEach((hack) => {
+        const svgEl = document.getElementById(hack.layerId);
+        if (svgEl) {
+          svgEl.style.opacity = hack.active ? "1" : "0.14";
+          svgEl.style.transition = "opacity 0.35s ease";
+        }
+
+        const btn = document.createElement("button");
+        btn.onclick = () => {
+          hack.active = !hack.active;
+          renderRoomHacks();
+          recalculateBiosphere();
+          showHudToast(hack.active ? `X-Ray Hack Enabled: ${hack.label}` : `X-Ray Hack Disabled: ${hack.label}`);
+        };
+
+        btn.className = `p-2.5 rounded-xl border text-left transition flex items-center justify-between gap-2 ${
+          hack.active
+            ? "bg-emerald-500/15 border-emerald-400/45 text-white"
+            : "bg-obsidian-900/70 border-slate-800 text-slate-400 hover:border-slate-700"
+        }`;
+
+        btn.innerHTML = `
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">${hack.label}</p>
+            <p class="text-[10px] font-mono ${hack.active ? "text-emerald-300" : "text-slate-500"}">-${hack.pmCut} µg/m³</p>
+          </div>
+          <span class="w-2.5 h-2.5 rounded-full shrink-0 ${hack.active ? "bg-emerald-400 shadow-[0_0_8px_#10B981]" : "bg-slate-700"}"></span>
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderCommunityPacts() {
+      const list = document.getElementById("community-pacts-list");
+      list.innerHTML = "";
+
+      let totalNeighbors = 0;
+      COMMUNITY_PACTS.forEach((pact) => {
+        totalNeighbors += pact.supporters;
+        const card = document.createElement("div");
+        card.className = "p-2.5 rounded-2xl bg-obsidian-900/75 border border-slate-800 flex items-center justify-between gap-2";
+        card.innerHTML = `
+          <div class="min-w-0">
+            <p class="text-xs font-semibold text-white truncate">${pact.title}</p>
+            <p class="text-[10px] font-mono text-cyan-300">${pact.meta} • ${pact.supporters}</p>
+          </div>
+          <button onclick="toggleCommunityPact('${pact.id}')" class="shrink-0 px-2.5 py-1.5 rounded-xl font-mono text-[10px] font-bold transition ${
+            pact.joined
+              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40"
+              : "bg-cyan-500 text-obsidian-950 hover:bg-cyan-400"
+          }">
+            ${pact.joined ? "ACTIVE" : "JOIN"}
+          </button>
+        `;
+        list.appendChild(card);
+      });
+
+      document.getElementById("ward-active-count").textContent = totalNeighbors.toLocaleString();
+    }
+
+    function toggleCommunityPact(id) {
+      const p = COMMUNITY_PACTS.find((x) => x.id === id);
+      if (!p) return;
+      p.joined = !p.joined;
+      p.supporters += p.joined ? 1 : -1;
+      renderCommunityPacts();
+      showHudToast(p.joined ? `Joined Ward Pact: ${p.title}` : `Left Pact: ${p.title}`);
+    }
+
+    // =========================================================================
+    // 5. AETHER GENAI COPILOT (GEMINI API + INSTANT STRUCTURED FALLBACK)
+    // =========================================================================
+    function generateInitialBriefing() {
+      const city = CITIES[currentCity];
+      const profile = PROFILES[currentProfile];
+      const stream = document.getElementById("aether-chat-stream");
+      stream.innerHTML = "";
+
+      const cardHtml = `
+        <div class="animate-msg flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shrink-0 mt-1">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div class="flex-1 bg-obsidian-900/85 border border-slate-800 rounded-2xl rounded-tl-sm p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] uppercase tracking-widest text-emerald-400">AETHER Atmospheric Synthesis</span>
+              <span class="font-mono text-[10px] text-slate-400">${city.name} • AQI ${city.aqi}</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              Calibrated for <strong>${profile}</strong> in <strong>${city.name}</strong>. With outdoor PM2.5 at <strong>${city.pm25} µg/m³</strong> (${city.whoMultiple}), here is your three-tier defense &amp; emission-cut protocol:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              <div class="p-3 rounded-xl bg-emerald-950/35 border border-emerald-500/25">
+                <p class="font-mono text-[10px] uppercase text-emerald-300 font-bold">1. Actionable Routine</p>
+                <p class="text-slate-300 mt-1 leading-relaxed">Seal frames until <strong>${city.ventWindow}</strong>. Shift morning transit to Metro/EV &amp; wear fitted N95 outdoors.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-cyan-950/35 border border-cyan-500/25">
+                <p class="font-mono text-[10px] uppercase text-cyan-300 font-bold">2. Why It Works</p>
+                <p class="text-slate-300 mt-1 leading-relaxed">Thermal inversion traps cold tailpipe NOx near ground until afternoon solar warming lifts the cap.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-500/25">
+                <p class="font-mono text-[10px] uppercase text-amber-300 font-bold">3. Direct Impact</p>
+                <p class="text-slate-300 mt-1 leading-relaxed">Cuts family PM2.5 inhalation by <strong>68%</strong> and prevents <strong>3.8 kg</strong> of neighborhood soot/CO₂ today.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      stream.innerHTML = cardHtml;
+      lucide.createIcons();
+    }
+
+    function appendUserChat(text) {
+      const stream = document.getElementById("aether-chat-stream");
+      const div = document.createElement("div");
+      div.className = "animate-msg flex justify-end";
+      div.innerHTML = `
+        <div class="bg-gradient-to-r from-emerald-600/90 to-cyan-600/90 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-xs sm:text-sm max-w-[82%] shadow-lg">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function appendStructuredAiCard(title, routine, science, impact) {
+      const stream = document.getElementById("aether-chat-stream");
+      const div = document.createElement("div");
+      div.className = "animate-msg flex items-start gap-3";
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shrink-0 mt-1">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1 bg-obsidian-900/90 border border-slate-800 rounded-2xl rounded-tl-sm p-4 space-y-2.5">
+          <p class="font-display font-bold text-sm text-emerald-300">${title}</p>
+          <div class="space-y-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-obsidian-950/70 border border-slate-800/90">
+              <span class="font-mono text-[10px] uppercase text-emerald-400 font-bold block">Actionable Routine</span>
+              <span class="text-slate-200">${routine}</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-obsidian-950/70 border border-slate-800/90">
+              <span class="font-mono text-[10px] uppercase text-cyan-400 font-bold block">Why It Works</span>
+              <span class="text-slate-300">${science}</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/25">
+              <span class="font-mono text-[10px] uppercase text-amber-300 font-bold block">Direct Health &amp; Emission Impact</span>
+              <span class="text-slate-200">${impact}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function triggerScenarioPrompt(key) {
+      const city = CITIES[currentCity];
+      const scenarios = {
+        school: {
+          q: `Optimize our low-emission school run for ${city.name} (AQI ${city.aqi})`,
+          title: "🚌 Zero-Idling & Green-Corridor School Protocol",
+          routine: `Walk or cycle via inner tree-lined lanes 50m off main roads, or join a verified 3-family EV/Metro pool. Fit kids with valveless KF94/N95 masks during morning AQI ${city.aqi}.`,
+          science: "Tailpipe ultrafine particle concentration drops by 32% just one block away from arterial traffic canyons, while dense foliage intercepts coarse PM10.",
+          impact: "Reduces children's morning lung particulate deposition by 54% and eliminates 1.9 kg of school-gate cold-start CO₂/soot."
+        },
+        kitchen: {
+          q: "How does cooking affect indoor winter smog and what is the cleanest swap?",
+          title: "🍳 Induction Transition & Aerosol Capture Protocol",
+          routine: "Switch primary boiling/sautéing to electric induction, keep pot lids on, and run a vented range hood or crack the kitchen exhaust during cooking.",
+          science: "Burning LPG/natural gas in sealed winter rooms generates nitrogen dioxide (NO₂) and ultrafine aerosols that often exceed outdoor severe smog levels.",
+          impact: "Cuts peak indoor NO₂ by 82% and lowers household daily PM2.5 inhalation by 28 µg/m³."
+        },
+        elderly: {
+          q: "Create a senior & asthma clean-air sanctuary plan for severe inversion hours",
+          title: "🫁 Clinical-Grade Bedroom Sanctuary for Seniors",
+          routine: `Create one positive-pressure 'Clean Room' using a MERV-13 cube or HEPA unit on continuous medium, wet-mop floors at 11 AM, and use isotonic saline nasal rinses at dusk.`,
+          science: "Fine PM2.5 crosses lung alveoli into the bloodstream, triggering systemic inflammation and blood-pressure spikes in older adults within hours.",
+          impact: "Maintains bedroom air below 30 AQI (91% purity), delivering +6.5 hours of cardiovascular rest every night."
+        },
+        biomass: {
+          q: "What sustainable alternatives replace leaf burning and dirty winter heating?",
+          title: "🍂 Zero-Burn Leaf Composting & Radiant Heating Swap",
+          routine: "Shred dry winter leaves into a wire-mesh aerobic compost cage instead of burning, and use thermostatic oil-filled radiators rather than wood or coal braziers.",
+          science: "Low-temperature smoldering biomass releases 20× more toxic black carbon and polycyclic aromatic hydrocarbons (PAHs) per gram than vehicle exhaust.",
+          impact: "Prevents ~1.8 kg of carcinogenic black carbon per neighborhood block every week."
+        }
+      };
+
+      const item = scenarios[key];
+      if (!item) return;
+      appendUserChat(item.q);
+      setTimeout(() => {
+        appendStructuredAiCard(item.title, item.routine, item.science, item.impact);
+      }, 280);
+    }
+
+    async function handleUserChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById("aether-user-input");
+      const query = input.value.trim();
+      if (!query) return;
+      input.value = "";
+
+      appendUserChat(query);
+      const city = CITIES[currentCity];
+      const profile = PROFILES[currentProfile];
+
+      // Attempt Gemini API structured synthesis with automatic smart fallback
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const systemPrompt = `You are AETHER, the GenAI atmospheric scientist inside VayuGuard. The user is a ${profile} in ${city.name} (Outdoor AQI: ${city.aqi}, PM2.5: ${city.pm25} µg/m³, Safe Ventilation Window: ${city.ventWindow}). Return ONLY a valid JSON object with 4 concise string keys: "title", "routine", "science", "impact". Tailor specifically to winter smog, indoor air quality hacks, low-emission daily habits, and direct measurable health/emission impact.`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: query }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "OBJECT",
+                properties: {
+                  title: { type: "STRING" },
+                  routine: { type: "STRING" },
+                  science: { type: "STRING" },
+                  impact: { type: "STRING" }
+                },
+                required: ["title", "routine", "science", "impact"]
+              }
+            }
+          })
+        });
+
+        if (!response.ok) throw new Error("API unavailable");
+        const data = await response.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsed = JSON.parse(rawText);
+        appendStructuredAiCard(parsed.title, parsed.routine, parsed.science, parsed.impact);
+      } catch (err) {
+        // Rich instant deterministic fallback so prototype is 100% responsive offline/sandboxed
+        appendStructuredAiCard(
+          `✨ Custom Biosphere Plan: "${escapeHtml(query)}"`,
+          `For your ${profile} in ${city.name} (AQI ${city.aqi}), schedule outdoor movement strictly inside the ${city.ventWindow} thermal window, wear a fitted N95 mask outdoors, and batch errands into a single electric/transit loop.`,
+          `Winter boundary-layer inversions trap surface aerosols until midday solar heating disperses them, while active MERV-13/HEPA filtration captures 85%+ of indoor PM2.5.`,
+          `Cuts personal daily particulate load by ~45 µg/m³ (saving ~2.0 cigarette-equivalents) and avoids 1.4 kg of local urban emissions.`
+        );
+      }
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Boot Application
+    window.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      initParticles();
+      animateAtmosphere();
+      renderHabitMatrix();
+      renderRoomHacks();
+      renderCommunityPacts();
+      recalculateBiosphere();
+      generateInitialBriefing();
+    });
+  </script>
+</body>
+</html>
